@@ -22,7 +22,7 @@ import numpy as np
 import pycocotools.mask as maskUtils
 
 
-class GetAnn():
+class GetCocoAnn():
     '''
     get map of coco imgids and annotations which fit our gaussian dataset
     '''
@@ -48,7 +48,6 @@ class GetAnn():
             ]
 
         self.target_stuff_list = self.gaussian_stuff_list + self.coco_fitted_stuff_list
-
         self.coco_data_dir = coco_data_dir
 
     def get_gaussian_imgIds(self, data_type, target_obj_list):
@@ -89,9 +88,10 @@ class GetAnn():
                 img_ids.extend(self.stuff_coco.getImgIds(catIds=catIds))
 
         # mini version
-        img_ids = img_ids[0:10]
-        for img_id in img_ids:
-            print(img_id)
+        # img_ids = img_ids[0:10]
+        # for img_id in img_ids:
+        #     print(img_id)
+
 
         return set(img_ids)
 

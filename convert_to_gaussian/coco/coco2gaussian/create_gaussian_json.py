@@ -14,10 +14,9 @@ ref: https://gaussian.yuque.com/perception/documents/pktva3
 import json
 import os
 import yaml
+from convert_to_gaussian.coco.coco2gaussian.get_coco_annotation import GetCocoAnn
 
-from get_coco_annotation import GetAnn
-
-class GaussianJson():
+class GaussianJsonCoco():
     '''
     convert coco annotations to our Gaussian Json format
     '''
@@ -25,17 +24,18 @@ class GaussianJson():
     def __init__(self, target_json_dir):
         self.target_json_dir = target_json_dir
 
-
-    def generate_gaussian_json(self, data_type, category_yaml):
+    def generate_gaussian_json(self, data_type, category_yaml, coco_data_dir):
         '''
         merge json items and generate the label json file according to data_type
         :param data_type: val2017/train2017
+        :param category_yaml: path of gaussian category yaml file
+        :param coco_data_dir: absolute path of coco dataset
         :return: single json file
         '''
 
         self.__get_basic_info__()
         self.__get_categories__(category_yaml)
-        self.__get_img_ann__(data_type)
+        self.__get_img_ann__(data_type, coco_data_dir)
 
         json_data = {
             "info": self.info,
@@ -102,15 +102,16 @@ class GaussianJson():
                 self.target_object.append(name)
 
 
-    def __get_img_ann__(self, data_type):
+    def __get_img_ann__(self, data_type, coco_data_dir):
         '''
         call get_coco_annotation function and get related imgs and annotations
         :param data_type: train2017/val2017
+        :param coco_data_dir: absolute path of coco dataset
         :return:
         '''
 
-        # init GetAnn Object and get COCO Annotations
-        coco_ann = GetAnn(coco_data_dir)
+        # init GetCocoAnn Object and get COCO Annotations
+        coco_ann = GetCocoAnn(coco_data_dir)
         img_ids = coco_ann.get_gaussian_imgIds(data_type, self.target_object)
         anns_list, img_list = coco_ann.get_img_ann_list(img_ids,  self.target_object, self.category_dict)
 
@@ -151,8 +152,8 @@ if __name__ == "__main__":
     category_yaml = '../../gaussian_categories_test.yml'
 
     # generate gaussian json
-    gs_json = GaussianJson(target_json_dir)
-    gs_json.generate_gaussian_json(data_type=data_type, category_yaml=category_yaml)
+    gs_json = GaussianJsonCoco(target_json_dir)
+    gs_json.generate_gaussian_json(data_type, category_yaml, coco_data_dir)
 
 
 
