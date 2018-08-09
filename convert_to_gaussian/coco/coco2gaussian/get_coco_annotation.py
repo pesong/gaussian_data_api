@@ -1,14 +1,25 @@
-import cv2
-import json
-import os
+'''
+This scripts
+1. merge the things and stuff task and filter the target imgids
 
+    ref: http://cocodataset.org/#stuff-2018
+    things: instance segmentation, provide bbox and polygon/RLE segmentation label
+    stuff:  segmentation, provide bbox and RLE segmentation label
+
+we should convert stuff label to things_like json format
+
+2. get the annotations according to imgids
+
+3. map the classification to our gaussian format
+    for example, carpet and rug exist in coco can map to carpet
+
+'''
+
+import cv2
 import yaml
 from pycocotools.coco import COCO
 import numpy as np
 import pycocotools.mask as maskUtils
-import skimage.io as io
-import matplotlib.pyplot as plt
-import pylab
 
 
 class GetAnn():
@@ -16,7 +27,7 @@ class GetAnn():
     get map of coco imgids and annotations which fit our gaussian dataset
     '''
 
-    def __init__(self):
+    def __init__(self, coco_data_dir):
         # our defined detection object
         self.gaussian_things_list = [
             'lane markings', 'person', 'rider', 'car', 'truck', 'bus', 'motorcycle', 'bicycle', 'robot',
@@ -38,12 +49,13 @@ class GetAnn():
 
         self.target_stuff_list = self.gaussian_stuff_list + self.coco_fitted_stuff_list
 
-        self.coco_data_dir = '/dl/data/coco'
+        self.coco_data_dir = coco_data_dir
 
-    def get_gaussian_imgIds(self, data_type):
+    def get_gaussian_imgIds(self, data_type, target_obj_list):
         '''
-        get target img list and annotations from coco things and stuff
+        get target img list from coco things and stuff
         :param data_type: train2017/val2017
+        :param target_obj_list: target object read form category yaml
         :return: set of coco imgIds
         '''
 
@@ -57,7 +69,7 @@ class GetAnn():
 
         # find target things in coco, return imgid
         for thing in self.gaussian_things_list:
-            if thing in coco_things_catnms:
+            if thing in target_obj_list and thing in coco_things_catnms:
                 # get catid list with given category name
                 catIds = self.thing_coco.getCatIds(catNms=[thing])
                 img_ids.extend(self.thing_coco.getImgIds(catIds=catIds))
@@ -71,38 +83,30 @@ class GetAnn():
 
         # find target stuff in coco, return imgid
         for stuff in self.target_stuff_list:
-            if stuff in coco_stuff_catnms:
+            if stuff in target_obj_list and stuff in coco_stuff_catnms:
                 # get catid list with given category name
                 catIds = self.stuff_coco.getCatIds(catNms=[stuff])
                 img_ids.extend(self.stuff_coco.getImgIds(catIds=catIds))
 
-        # # mini version
-        # img_ids = img_ids[0:10]
-        # for img_id in img_ids:
-        #     print(img_id)
+        # mini version
+        img_ids = img_ids[0:10]
+        for img_id in img_ids:
+            print(img_id)
 
         return set(img_ids)
 
 
 
-    def get_img_ann_list(self, img_ids, gs_category_dict=False):
+    def get_img_ann_list(self, img_ids, target_obj_list, gs_category_dict):
         '''
         get imgs list and annotations from coco label json
-        :param img_ids:
+        :param img_ids: get by function get_gaussian_imgIds()
+        :param gs_category_dict: target category dict {category_name: id} read form category yaml
+        :param target_obj_list: target object read form category yaml
         :return: filtered imgs and annotations
         '''
 
-        if gs_category_dict:
-            gs_cat_map = gs_category_dict
-        else:
-            # get gaussian category map {cat_name:id}
-            gs_cat_map = {}
-            f = open('../../gaussian_categories.yml', 'r')
-            catseqs = yaml.load(f)
-            for super, seqs in catseqs.items():
-                for cat_name, id in seqs.items():
-                    gs_cat_map[cat_name] = id
-
+        gs_cat_map = gs_category_dict
         anns_list = []
         img_list = []
         anns_thing = []
@@ -117,7 +121,7 @@ class GetAnn():
             # get mapped thing annotations
             for ann in coco_anns_thing:
                 thing_name = self.thing_coco.loadCats(ann['category_id'])[0]['name']
-                if thing_name in self.gaussian_things_list:
+                if thing_name in target_obj_list and thing_name in self.gaussian_things_list:
                     ann['category_id'] = gs_cat_map[thing_name]
 
                     anns_thing.append(ann)
@@ -129,7 +133,8 @@ class GetAnn():
 
             for ann in coco_anns_stuff:
                 stuff_name = self.stuff_coco.loadCats(ann['category_id'])[0]['name']
-                if stuff_name in self.target_stuff_list:
+                if stuff_name in target_obj_list and stuff_name in self.target_stuff_list:
+
                     if stuff_name in ['bush', 'grass', 'tree']:
                         ann['category_id'] = gs_cat_map['vegetation']
                     elif stuff_name in ['carpet', 'rug']:
@@ -184,16 +189,7 @@ class GetAnn():
         return anns_list
 
 
-
-if __name__ == "__main__":
-
-    coco_ann = GetAnn()
-    img_ids_val = coco_ann.get_gaussian_imgIds('val2017')
-    anns_val, img_val = coco_ann.get_img_ann_list(img_ids_val)
-
-    refine_anns_val = coco_ann.mask2polys(anns_val)
-
-    print("")
+# coco things and stuff
 
 # person bicycle car motorcycle airplane bus train truck boat traffic light fire
 # hydrant stop sign parking meter bench bird cat dog horse sheep cow elephant bear
