@@ -1,0 +1,10 @@
+flat:
+  road: 1
+movable object:
+  person: 11
+  rider: 12
+  car: 13
+  truck: 14
+  bus: 15
+  motorcycle: 16
+  bicycle: 17

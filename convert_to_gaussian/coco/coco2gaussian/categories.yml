@@ -1,0 +1,49 @@
+flat:
+  road: 1
+  pavement: 2
+  sidewalk: 3
+  lane markings: 4
+
+movable object:
+  person: 11
+  rider: 12
+  car: 13
+  truck: 14
+  bus: 15
+  motorcycle: 16
+  bicycle: 17
+  robot: 18
+
+roadside object:
+  pole: 21
+  traffic light: 22
+  traffic sign: 23
+  dustbin: 24
+  billboard: 25
+
+road obstacles:
+  fence: 31
+  traffic_cone: 32
+  road_pile: 33
+
+target object:
+  garbage: 41
+  slops: 42
+  ladder: 43
+  pack: 44
+  face: 45
+  chair: 46
+  table: 47
+  carpet: 48
+  potted plant: 49
+
+nature:
+  sky: 61
+  vegetation: 62
+
+construction:
+  building: 71
+  wall: 72
+
+others:
+  __background__: 0
