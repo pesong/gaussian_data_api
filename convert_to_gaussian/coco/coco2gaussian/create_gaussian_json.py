@@ -13,6 +13,8 @@ ref: https://gaussian.yuque.com/perception/documents/pktva3
 """
 import json
 import os
+import shutil
+
 import yaml
 from convert_to_gaussian.coco.coco2gaussian.get_coco_annotation import GetCocoAnn
 
@@ -21,8 +23,8 @@ class GaussianJsonCoco():
     convert coco annotations to our Gaussian Json format
     '''
 
-    def __init__(self, target_json_dir):
-        self.target_json_dir = target_json_dir
+    def __init__(self, out_dir):
+        self.out_dir = out_dir
 
     def generate_gaussian_json(self, data_type, category_yaml, coco_data_dir):
         '''
@@ -46,7 +48,9 @@ class GaussianJsonCoco():
             "annotations": self.anns
         }
 
-        with open(os.path.join(self.target_json_dir, "instances_%s.json" % data_type), 'w') as jsonfile:
+        if not os.path.exists(os.path.join(self.out_dir, 'annotations')):
+            os.makedirs(os.path.join(self.out_dir, 'annotations'))
+        with open(os.path.join(self.out_dir, 'annotations', "instances_%s.json" % data_type), 'w') as jsonfile:
             jsonfile.write(json.dumps(json_data, sort_keys=True))
 
 
@@ -120,12 +124,20 @@ class GaussianJsonCoco():
         # get gaussian imgs
         gs_imgs = []
 
+        # define copy file path
+        src_dir = os.path.join(coco_data_dir, 'images', data_type)
+        target_dir = os.path.join(self.out_dir, 'images', data_type)
+        if not os.path.exists(target_dir):
+            os.makedirs(target_dir)
+
         for img in img_list:
             gs_img = {}
 
             # construct images
             gs_img['id'] = img['id']
-            gs_img['file_name'] = img['file_name']
+
+            file_name = img['file_name']
+            gs_img['file_name'] = file_name
             gs_img['coco_url'] = img['coco_url']
 
             gs_img['width'] = img['width']
@@ -141,18 +153,22 @@ class GaussianJsonCoco():
             gs_img['weather'] = ''
             gs_imgs.append(gs_img)
 
+            # copy target image file to outdir
+            shutil.copyfile(os.path.join(src_dir, file_name), os.path.join(target_dir, file_name))
+
+
         self.imgs = gs_imgs
 
 
 if __name__ == "__main__":
 
     coco_data_dir = '/dl/data/coco'
-    target_json_dir = './'
+    out_dir = '/media/pesong/e/dl_gaussian/data/gaussian'
     data_type = 'val2017'
     category_yaml = '../../gaussian_categories_test.yml'
 
     # generate gaussian json
-    gs_json = GaussianJsonCoco(target_json_dir)
+    gs_json = GaussianJsonCoco(out_dir)
     gs_json.generate_gaussian_json(data_type, category_yaml, coco_data_dir)
 
 

@@ -1,5 +1,6 @@
 import json
 import os
+import shutil
 
 import yaml
 
@@ -19,9 +20,9 @@ class GSJsonFromCityscapes():
         self.city_data_dir = city_data_dir
         self.out_dir = out_dir
 
-    def generate_gaussian_json(self, data_type):
+    def generate_gaussian_json(self, data_type, category_yaml):
         self.__get_basic_info__()
-        self.__get_categories__()
+        self.__get_categories__(category_yaml)
         self.__get_img_ann__(data_type)
 
         json_data = {
@@ -33,7 +34,11 @@ class GSJsonFromCityscapes():
             "annotations": self.annotations
         }
 
-        with open(os.path.join(self.out_dir, "instances_%s2017.json" % data_type), 'w') as jsonfile:
+        # write json to out_dir
+        if not os.path.exists(os.path.join(self.out_dir, 'annotations')):
+            os.makedirs(os.path.join(self.out_dir, 'annotations'))
+
+        with open(os.path.join(self.out_dir, 'annotations', "instances_%s2017.json" % data_type), 'w') as jsonfile:
             jsonfile.write(json.dumps(json_data, sort_keys=True))
 
     def __get_basic_info__(self, ros_info=False):
@@ -54,7 +59,7 @@ class GSJsonFromCityscapes():
         }
 
         self.vehicle_info = [{
-            "id": '',
+            "id": '0',
             "hardware_version": '',
             "software_version": '',
             "sensor_list": [],
@@ -62,7 +67,7 @@ class GSJsonFromCityscapes():
         }]
 
         self.log_info = [{
-            "id": '',
+            "id": '0',
             "type": '',
             "vehicle_id": 0,
             "location": '',
@@ -70,16 +75,20 @@ class GSJsonFromCityscapes():
             "end time": ''
         }]
 
-    def __get_categories__(self):
+    def __get_categories__(self, category_yaml):
 
         self.categories = []
         self.category_dict = {}
-        f = open(r'../gaussian_categories_test.yml', 'r')
+        self.target_obj_list = []
+
+        f = open(category_yaml, 'r')
         catseqs = yaml.load(f)
         for super, seqs in catseqs.items():
             for name, id in seqs.items():
                 self.categories.append({"supercategory": super, "name": name, "id": id})
                 self.category_dict[name] = id
+                self.target_obj_list.append(name)
+
 
     def __get_img_ann__(self, data_type):
         """
@@ -93,26 +102,16 @@ class GSJsonFromCityscapes():
         json_name = ''
         ends_in = '%s_polygons.json'
 
-        category_list = [
-            'person',
-            'rider',
-            'car',
-            'truck',
-            'bus',
-            'motorcycle',
-            'bicycle',
-            'road',
-            # 'sidewalk',
-            # 'building',
-            # 'wall',
-            # 'fence',
-            # 'pole',
-            # 'traffic sign',
-            # 'traffic light',
-            # 'vegetation',
-            # 'terrain',
-            # 'sky'
-        ]
+        category_list = self.target_obj_list
+
+
+        # define copy file path
+
+        src_dir = os.path.join(self.city_data_dir, 'leftImg8bit', data_type)
+        target_dir = os.path.join(self.out_dir, 'images', data_type+'2017')
+        if not os.path.exists(target_dir):
+            os.makedirs(target_dir)
+
 
         for data_set, ann_dir in zip(sets, ann_dirs):
             print('Starting %s' % data_set)
@@ -138,16 +137,22 @@ class GSJsonFromCityscapes():
                         image['rosbag_name'] = ''
                         image['encode_type'] = 'rgb'
                         image['is_synthetic'] = 'no'
-                        image['vehicle_info_id'] = ''
-                        image['log_info_id'] = ''
+                        image['vehicle_info_id'] = '0'
+                        image['log_info_id'] = '0'
                         image['weather'] = ''
 
-                        image['file_name'] = filename[:-len(
+                        file_name = filename[:-len(
                             ends_in % data_set.split('_')[0])] + 'leftImg8bit.png'
+                        image['file_name'] = file_name
+
                         seg_file_name = filename[:-len(
                             ends_in % data_set.split('_')[0])] + \
                                                  '%s_labelIds.png' % data_set.split('_')[0]
                         self.images.append(image)
+
+                        # copy target image file to outdir
+                        src_dir_suffix = root.split('/')[-1]
+                        shutil.copyfile(os.path.join(src_dir, src_dir_suffix, file_name), os.path.join(target_dir, file_name))
 
                         fullname = os.path.join(root, seg_file_name)
                         objects = cs.instances2dict_with_polygons(
@@ -192,13 +197,16 @@ class GSJsonFromCityscapes():
 
 if __name__ == '__main__':
     data_dir = '/media/pesong/e/dl_gaussian/data/cityscapes/cityscapes_ori'
-    out_dir = '/media/pesong/e/dl_gaussian/data/cityscapes/4detectron/annotations'
+    # out_dir = '/media/pesong/e/dl_gaussian/data/cityscapes/4detectron/annotations'
+
+    out_dir = './'
+    category_yaml = '../../gaussian_categories_test.yml'
 
     # init
     gs_json_from_city = GSJsonFromCityscapes(data_dir, out_dir)
 
     # generate val json
-    gs_json_from_city.generate_gaussian_json('val')
+    gs_json_from_city.generate_gaussian_json('val', category_yaml)
 
-    # generate train json
-    gs_json_from_city.generate_gaussian_json('train')
+    # # generate train json
+    # gs_json_from_city.generate_gaussian_json('train', category_yaml)
