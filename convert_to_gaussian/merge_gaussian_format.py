@@ -42,12 +42,13 @@ class GaussianData():
             data_type = data_type + '2017'
             gs_json_from_coco = GaussianJsonCoco(outdir)
             print('---------------start convert coco---------------------')
-            gs_json_from_coco.generate_gaussian_json(data_type, category_yaml, source_data_dir)
+            gs_json_from_coco.generate_gaussian_json(data_type, category_yaml, source_data_dir, iscopy=False)
 
+        # convert cityscapes
         elif data_source == 'cityscapes':
             gs_json_from_city = GSJsonFromCityscapes(source_data_dir, outdir)
             print('---------------start convert cityscapes----------------')
-            gs_json_from_city.generate_gaussian_json(data_type, category_yaml)
+            gs_json_from_city.generate_gaussian_json(data_type, category_yaml, iscopy=False)
 
 
     def merge_json(self, data_type, json_file1, jsonfile2):
@@ -117,7 +118,7 @@ def convert():
 
     # define paremeters
     out_dir = '/media/pesong/e/dl_gaussian/data/gaussian'
-    data_types = ['train', 'val']
+    data_types = ['val']
     category_yaml = './gaussian_categories_test.yml'
 
     # init Object
@@ -144,8 +145,8 @@ def merge():
 
 
 if __name__ == "__main__":
-    # convert()
-    merge()
+    convert()
+    # merge()
 
 
 

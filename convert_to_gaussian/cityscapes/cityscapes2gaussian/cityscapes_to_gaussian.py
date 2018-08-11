@@ -1,3 +1,4 @@
+import collections
 import json
 import os
 import shutil
@@ -20,10 +21,10 @@ class GSJsonFromCityscapes():
         self.city_data_dir = city_data_dir
         self.out_dir = out_dir
 
-    def generate_gaussian_json(self, data_type, category_yaml):
+    def generate_gaussian_json(self, data_type, category_yaml, iscopy = False):
         self.__get_basic_info__()
         self.__get_categories__(category_yaml)
-        self.__get_img_ann__(data_type)
+        self.__get_img_ann__(data_type, iscopy)
 
         json_data = {
             "info": self.info,
@@ -77,20 +78,27 @@ class GSJsonFromCityscapes():
 
     def __get_categories__(self, category_yaml):
 
+        id_cat = {}             # {id:{}}
         self.categories = []
         self.category_dict = {}
         self.target_obj_list = []
+        id_list = []
 
         f = open(category_yaml, 'r')
         catseqs = yaml.load(f)
         for super, seqs in catseqs.items():
             for name, id in seqs.items():
-                self.categories.append({"supercategory": super, "name": name, "id": id})
+                id_cat[id] = {"supercategory": super, "name": name, "id": id}
                 self.category_dict[name] = id
                 self.target_obj_list.append(name)
+                id_list.append(id)
 
+        id_list.sort()
 
-    def __get_img_ann__(self, data_type):
+        for id in id_list:
+            self.categories.append(id_cat[id])
+
+    def __get_img_ann__(self, data_type, iscopy=False):
         """
         convert from cityscapes format to gaussian format
         :param data_type: val/train/test
@@ -151,8 +159,11 @@ class GSJsonFromCityscapes():
                         self.images.append(image)
 
                         # copy target image file to outdir
-                        src_dir_suffix = root.split('/')[-1]
-                        shutil.copyfile(os.path.join(src_dir, src_dir_suffix, file_name), os.path.join(target_dir, file_name))
+                        if iscopy:
+                            print('copying files form source dataset')
+                            src_dir_suffix = root.split('/')[-1]
+                            shutil.copyfile(os.path.join(src_dir, src_dir_suffix, file_name),
+                                            os.path.join(target_dir, file_name))
 
                         fullname = os.path.join(root, seg_file_name)
                         objects = cs.instances2dict_with_polygons(

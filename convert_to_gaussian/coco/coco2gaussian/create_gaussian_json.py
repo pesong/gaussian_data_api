@@ -11,8 +11,10 @@ ref: https://gaussian.yuque.com/perception/documents/pktva3
 
 
 """
+import collections
 import json
 import os
+import random
 import shutil
 
 import yaml
@@ -26,7 +28,7 @@ class GaussianJsonCoco():
     def __init__(self, out_dir):
         self.out_dir = out_dir
 
-    def generate_gaussian_json(self, data_type, category_yaml, coco_data_dir):
+    def generate_gaussian_json(self, data_type, category_yaml, coco_data_dir, iscopy=False):
         '''
         merge json items and generate the label json file according to data_type
         :param data_type: val2017/train2017
@@ -37,7 +39,7 @@ class GaussianJsonCoco():
 
         self.__get_basic_info__()
         self.__get_categories__(category_yaml)
-        self.__get_img_ann__(data_type, coco_data_dir)
+        self.__get_img_ann__(data_type, coco_data_dir, iscopy)
 
         json_data = {
             "info": self.info,
@@ -93,20 +95,30 @@ class GaussianJsonCoco():
         :return: dict and list of categories
         '''
 
+
+        id_cat = {}             # {id:{}}
         self.categories = []
         self.category_dict = {}
-        self.target_object = []
+        self.target_obj_list = []
+        id_list = []
 
         f = open(category_yaml, 'r')
         catseqs = yaml.load(f)
         for super, seqs in catseqs.items():
             for name, id in seqs.items():
-                self.categories.append({"supercategory": super, "name": name, "id": id})
+                id_cat[id] = {"supercategory": super, "name": name, "id": id}
                 self.category_dict[name] = id
-                self.target_object.append(name)
+                self.target_obj_list.append(name)
+                id_list.append(id)
+
+        id_list.sort()
+
+        for id in id_list:
+            self.categories.append(id_cat[id])
 
 
-    def __get_img_ann__(self, data_type, coco_data_dir):
+
+    def __get_img_ann__(self, data_type, coco_data_dir, iscopy=False):
         '''
         call get_coco_annotation function and get related imgs and annotations
         :param data_type: train2017/val2017
@@ -116,8 +128,8 @@ class GaussianJsonCoco():
 
         # init GetCocoAnn Object and get COCO Annotations
         coco_ann = GetCocoAnn(coco_data_dir)
-        img_ids = coco_ann.get_gaussian_imgIds(data_type, self.target_object)
-        anns_list, img_list = coco_ann.get_img_ann_list(img_ids,  self.target_object, self.category_dict)
+        img_ids = coco_ann.get_gaussian_imgIds(data_type, self.target_obj_list)
+        anns_list, img_list = coco_ann.get_img_ann_list(img_ids, self.target_obj_list, self.category_dict)
 
         self.anns = coco_ann.mask2polys(anns_list)
 
@@ -153,8 +165,11 @@ class GaussianJsonCoco():
             gs_img['weather'] = ''
             gs_imgs.append(gs_img)
 
+
             # copy target image file to outdir
-            shutil.copyfile(os.path.join(src_dir, file_name), os.path.join(target_dir, file_name))
+            if iscopy:
+                print('copying files from source dataset')
+                shutil.copyfile(os.path.join(src_dir, file_name), os.path.join(target_dir, file_name))
 
 
         self.imgs = gs_imgs
