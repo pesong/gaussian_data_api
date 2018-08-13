@@ -127,9 +127,9 @@ class GaussianJsonCoco():
         '''
 
         # init GetCocoAnn Object and get COCO Annotations
-        coco_ann = GetCocoAnn(coco_data_dir)
-        img_ids = coco_ann.get_gaussian_imgIds(data_type, self.target_obj_list)
-        anns_list, img_list = coco_ann.get_img_ann_list(img_ids, self.target_obj_list, self.category_dict)
+        coco_ann = GetCocoAnn(coco_data_dir, self.target_obj_list)
+        img_ids = coco_ann.get_gaussian_imgIds(data_type)
+        anns_list, img_list = coco_ann.get_img_ann_list(img_ids, self.category_dict)
 
         self.anns = coco_ann.mask2polys(anns_list)
 
@@ -168,7 +168,7 @@ class GaussianJsonCoco():
 
             # copy target image file to outdir
             if iscopy:
-                print('copying files from source dataset')
+                # print('copying files from source dataset')
                 shutil.copyfile(os.path.join(src_dir, file_name), os.path.join(target_dir, file_name))
 
 

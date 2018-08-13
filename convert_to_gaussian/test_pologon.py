@@ -12,10 +12,10 @@ def main():
 
     # dataDir='/media/pesong/e/dl_gaussian/data/gaussian/images'
 
-    dataDir='/home/pesong/Documents/mini_gaussian_json/images'
+    dataDir='/media/pesong/e/dl_gaussian/data/gaussian/test/coco/images'
     dataType='val'
     # annFile='/media/pesong/e/dl_gaussian/data/gaussian/annotations/instances_{}2017.json'.format(dataType)
-    annFile='/home/pesong/Documents/mini_gaussian_json/annotations/instances_{}2017.json'.format(dataType)
+    annFile='/media/pesong/e/dl_gaussian/data/gaussian/test/coco/annotations/instances_{}2017.json'.format(dataType)
 
 
 

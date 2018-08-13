@@ -22,7 +22,7 @@ class GaussianData():
     def __init__(self, out_dir):
         self.out_root_dir = out_dir
 
-    def convert_source(self, data_source, source_data_dir, data_type, category_yaml):
+    def convert_source(self, data_source, source_data_dir, data_type, category_yaml, iscopy=False):
         '''
         convert the source data by given data and data_dir
         :param data_source: data source name
@@ -41,14 +41,14 @@ class GaussianData():
         if data_source == 'coco':
             data_type = data_type + '2017'
             gs_json_from_coco = GaussianJsonCoco(outdir)
-            print('---------------start convert coco---------------------')
-            gs_json_from_coco.generate_gaussian_json(data_type, category_yaml, source_data_dir, iscopy=False)
+            print('---------------start convert coco:{}---------------------'.format(data_type))
+            gs_json_from_coco.generate_gaussian_json(data_type, category_yaml, source_data_dir, iscopy)
 
         # convert cityscapes
         elif data_source == 'cityscapes':
             gs_json_from_city = GSJsonFromCityscapes(source_data_dir, outdir)
-            print('---------------start convert cityscapes----------------')
-            gs_json_from_city.generate_gaussian_json(data_type, category_yaml, iscopy=False)
+            print('---------------start convert cityscapes:{}----------------'.format(data_type))
+            gs_json_from_city.generate_gaussian_json(data_type, category_yaml, iscopy)
 
 
     def merge_json(self, data_type, json_file1, jsonfile2):
@@ -110,15 +110,15 @@ def convert():
             'data_source': 'coco',
             'source_data_dir': '/media/pesong/e/dl_gaussian/data/coco'
         },
-        {
-            'data_source': 'cityscapes',
-            'source_data_dir': '/media/pesong/e/dl_gaussian/data/cityscapes/cityscapes_ori'
-        }
+        # {
+        #     'data_source': 'cityscapes',
+        #     'source_data_dir': '/media/pesong/e/dl_gaussian/data/cityscapes/cityscapes_ori'
+        # }
     ]
 
     # define paremeters
-    out_dir = '/media/pesong/e/dl_gaussian/data/gaussian'
-    data_types = ['val']
+    out_dir = '/media/pesong/e/dl_gaussian/data/gaussian/'
+    data_types = ['val', 'train']
     category_yaml = './gaussian_categories_test.yml'
 
     # init Object
@@ -129,7 +129,7 @@ def convert():
         for source in source_data_dict:
             data_source = source['data_source']
             source_data_dir = source['source_data_dir']
-            gs_data.convert_source(data_source, source_data_dir, data_type, category_yaml)
+            gs_data.convert_source(data_source, source_data_dir, data_type, category_yaml, iscopy=True)
 
 
 def merge():
