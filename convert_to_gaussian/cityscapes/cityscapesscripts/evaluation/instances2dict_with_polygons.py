@@ -38,8 +38,6 @@ def instances2dict_with_polygons(imageFileList, verbose=False):
         for instanceId in np.unique(imgNp):
             # if instanceId < 1000:
             #     continue
-
-
             instanceObj = Instance(imgNp, instanceId)
             instanceObj_dict = instanceObj.toDict()
 

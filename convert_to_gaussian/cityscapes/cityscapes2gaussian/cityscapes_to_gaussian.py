@@ -2,7 +2,8 @@ import collections
 import json
 import os
 import shutil
-
+import numpy as np
+import cv2
 import yaml
 
 import convert_to_gaussian.cityscapes.cityscapesscripts.evaluation.instances2dict_with_polygons as cs
@@ -16,10 +17,13 @@ class GSJsonFromCityscapes():
     '''
 
     def __init__(self, city_data_dir, out_dir):
-        self.img_id = 0
-        self.ann_id = 0
+        self.img_id = 1
+        self.ann_id = 1
         self.city_data_dir = city_data_dir
         self.out_dir = out_dir
+        self.gaussian_stuff_list = \
+            ['road', 'pavement', 'fence', 'sky', 'vegetation', 'building', 'wall', 'sidewalk', 'terrain']
+
 
     def generate_gaussian_json(self, data_type, category_yaml, iscopy = False):
         self.__get_basic_info__()
@@ -134,36 +138,11 @@ class GSJsonFromCityscapes():
                             print("Processed %s images, %s annotations" % (
                                 len(self.images), len(self.annotations)))
                         json_ann = json.load(open(os.path.join(root, filename)))
-                        image = {}
-                        self.img_id += 1
-                        image['id'] = self.img_id
-                        image['width'] = json_ann['imgWidth']
-                        image['height'] = json_ann['imgHeight']
-                        image['depth'] = 3
-                        image['device'] = 'camera'
-                        image['date_captured'] = ''
-                        image['rosbag_name'] = ''
-                        image['encode_type'] = 'rgb'
-                        image['is_synthetic'] = 'no'
-                        image['vehicle_info_id'] = '0'
-                        image['log_info_id'] = '0'
-                        image['weather'] = ''
 
-                        file_name = filename[:-len(
-                            ends_in % data_set.split('_')[0])] + 'leftImg8bit.png'
-                        image['file_name'] = file_name
 
                         seg_file_name = filename[:-len(
                             ends_in % data_set.split('_')[0])] + \
                                                  '%s_labelIds.png' % data_set.split('_')[0]
-                        self.images.append(image)
-
-                        # copy target image file to outdir
-                        if iscopy:
-                            print('copying files form source dataset')
-                            src_dir_suffix = root.split('/')[-1]
-                            shutil.copyfile(os.path.join(src_dir, src_dir_suffix, file_name),
-                                            os.path.join(target_dir, file_name))
 
                         fullname = os.path.join(root, seg_file_name)
                         objects = cs.instances2dict_with_polygons(
@@ -183,41 +162,78 @@ class GSJsonFromCityscapes():
                                     print('Warning: invalid contours.')
                                     continue  # skip non-instance categories
 
-                                ann = {}
-                                ann['id'] = self.ann_id
-                                self.ann_id += 1
-                                ann['image_id'] = image['id']
-                                ann['segmentation'] = obj['contours']
+                                for seg in obj['contours']:
+                                    ann = {}
+                                    ann['id'] = self.ann_id
+                                    self.ann_id += 1
 
-                                # map cityscapes categoty to gaussian category_dict
-                                if object_cls == 'sidewalk':
-                                    ann['category_id'] = self.category_dict['pavement']
-                                elif object_cls == 'terrain':
-                                    ann['category_id'] = self.category_dict['vegetation']
-                                else:
-                                    ann['category_id'] = self.category_dict[object_cls]
+                                    ann['image_id'] = self.img_id
 
-                                ann['iscrowd'] = 0
-                                ann['area'] = obj['pixelCount']
-                                ann['bbox'] = bboxs_util.xyxy_to_xywh(
-                                    segms_util.polys_to_boxes(
-                                        [ann['segmentation']])).tolist()[0]
+                                    # map cityscapes categoty to gaussian category_dict
+                                    if object_cls == 'sidewalk':
+                                        ann['category_id'] = self.category_dict['pavement']
+                                    elif object_cls == 'terrain':
+                                        ann['category_id'] = self.category_dict['vegetation']
+                                    else:
+                                        ann['category_id'] = self.category_dict[object_cls]
 
-                                self.annotations.append(ann)
+                                    ann['iscrowd'] = 0
+                                    seg_reshape = np.array(seg).reshape((len(seg)//2), 2)
+                                    aera = cv2.contourArea(seg_reshape)
+                                    # remove small object in stuff list
+                                    if object_cls in self.gaussian_stuff_list and aera < 3000:
+                                        continue
+                                    ann['area'] = aera
+                                    ann['bbox'] = bboxs_util.xyxy_to_xywh(
+                                        segms_util.polys_to_boxes(
+                                            [[seg]])).tolist()[0]
+                                    ann['segmentation'] = [seg]
+                                    self.annotations.append(ann)
+
+                        #  add image info to our annotations
+                        image = {}
+                        image['id'] = self.img_id
+                        self.img_id += 1
+                        image['width'] = json_ann['imgWidth']
+                        image['height'] = json_ann['imgHeight']
+                        image['depth'] = 3
+                        image['device'] = 'camera'
+                        image['date_captured'] = ''
+                        image['rosbag_name'] = ''
+                        image['encode_type'] = 'rgb'
+                        image['is_synthetic'] = 'no'
+                        image['vehicle_info_id'] = '0'
+                        image['log_info_id'] = '0'
+                        image['weather'] = ''
+                        file_name = filename[:-len(
+                            ends_in % data_set.split('_')[0])] + 'leftImg8bit.png'
+                        image['file_name'] = file_name
+                        self.images.append(image)
+
+                        # copy target image file to outdir
+                        if iscopy:
+                            print('copying files form source dataset')
+                            src_dir_suffix = root.split('/')[-1]
+                            shutil.copyfile(os.path.join(src_dir, src_dir_suffix, file_name),
+                                            os.path.join(target_dir, file_name))
+
+                        # # control dataset size
+                        # if len(self.images) >= 50:
+                        #     break
 
 
 if __name__ == '__main__':
     data_dir = '/media/pesong/e/dl_gaussian/data/cityscapes/cityscapes_ori'
     # out_dir = '/media/pesong/e/dl_gaussian/data/cityscapes/4detectron/annotations'
 
-    out_dir = './'
+    out_dir = '../../test_cs'
     category_yaml = '../../gaussian_categories_test.yml'
 
     # init
     gs_json_from_city = GSJsonFromCityscapes(data_dir, out_dir)
 
     # generate val json
-    gs_json_from_city.generate_gaussian_json('val', category_yaml)
+    gs_json_from_city.generate_gaussian_json('val', category_yaml, iscopy=True)
 
     # # generate train json
     # gs_json_from_city.generate_gaussian_json('train', category_yaml)

@@ -67,12 +67,16 @@ class GaussianData():
             "device": 'coco & cityscapes images',
             "date_created": '2018-07-28'
         }
+        self.ann_id = 1
 
         with open(json_file1) as f:
             line = f.readline()
             d = json.loads(line)
             self.imgs = d['images']
             self.anns = d['annotations']
+            for ann in self.anns:
+                ann['id'] = self.ann_id
+                self.ann_id += 1
             self.vehicle_info = d['vehicle_info']
             self.log_info = d['log_info']
             self.categories = d['categories']
@@ -82,7 +86,11 @@ class GaussianData():
             d = json.loads(line)
             print('-----------extend list-------------')
             self.imgs.extend(d['images'])
-            self.anns.extend(d['annotations'])
+            anns = d['annotations']
+            for ann in anns:
+                ann['id'] = self.ann_id
+                self.ann_id += 1
+            self.anns.extend(anns)
 
         print('-----------shuffle-------------')
         random.shuffle(self.imgs)
@@ -106,14 +114,14 @@ class GaussianData():
 def convert():
     # define source data list
     source_data_dict = [
-        {
-            'data_source': 'coco',
-            'source_data_dir': '/media/pesong/e/dl_gaussian/data/coco'
-        },
         # {
-        #     'data_source': 'cityscapes',
-        #     'source_data_dir': '/media/pesong/e/dl_gaussian/data/cityscapes/cityscapes_ori'
-        # }
+        #     'data_source': 'coco',
+        #     'source_data_dir': '/media/pesong/e/dl_gaussian/data/coco'
+        # },
+        {
+            'data_source': 'cityscapes',
+            'source_data_dir': '/media/pesong/e/dl_gaussian/data/cityscapes/cityscapes_ori'
+        }
     ]
 
     # define paremeters
@@ -143,10 +151,9 @@ def merge():
         gs_data.merge_json(data_type, json_file1, json_file2)
 
 
-
 if __name__ == "__main__":
-    convert()
-    # merge()
+    # convert()
+    merge()
 
 
 
