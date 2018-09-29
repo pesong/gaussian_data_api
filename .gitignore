@@ -3,3 +3,4 @@
 .ipynb_checkpoints
 *.xml
 *.json
+convert_to_gaussian/test_cs/

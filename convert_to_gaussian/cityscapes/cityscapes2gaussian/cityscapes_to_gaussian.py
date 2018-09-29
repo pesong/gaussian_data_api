@@ -60,7 +60,7 @@ class GSJsonFromCityscapes():
             "description": 'convert  cityscapes to gaussian dataset merging the thing & stuff tasks',
             "contributor": 'gaussian dl team',
             "device": 'cityscapes images',
-            "date_created": '2018-08-02'
+            "date_created": '2018-09-26'
         }
 
         self.vehicle_info = [{
@@ -223,7 +223,7 @@ class GSJsonFromCityscapes():
 
 
 if __name__ == '__main__':
-    data_dir = '/media/pesong/e/dl_gaussian/data/cityscapes/cityscapes_ori'
+    data_dir = '/media/pesong/e/dl_gaussian/data/cityscapes/cityscapes_mini'
     # out_dir = '/media/pesong/e/dl_gaussian/data/cityscapes/4detectron/annotations'
 
     out_dir = '../../test_cs'

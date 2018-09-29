@@ -26,7 +26,7 @@ dataType = 'train'
 #                   'cell phone', 'microwave', 'oven', 'toaster', 'sink', 'refrigerator', 'book', 'clock', 'vase', 'scissors',
 #                    'teddy bear', 'hair drier', 'toothbrush']
 
-target_classes = ['person', 'bicycle', 'car']
+target_classes = ['person', 'bicycle', 'car', 'road']
 output_dir = '/home/data_dl/detect-voc/person_car_bicycle'
 dataDir = '/media/pesong/e/dl_gaussian/data/coco/images/{}2017'.format(dataType)
 anno_file = '/media/pesong/e/dl_gaussian/data/coco/annotations/instances_{}2017.json'.format(dataType)

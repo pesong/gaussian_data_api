@@ -28,7 +28,7 @@ class GaussianJsonCoco():
     def __init__(self, out_dir):
         self.out_dir = out_dir
 
-    def generate_gaussian_json(self, data_type, category_yaml, coco_data_dir, iscopy=False):
+    def generate_gaussian_json(self, data_type, category_yaml, coco_data_dir, iscopy=True):
         '''
         merge json items and generate the label json file according to data_type
         :param data_type: val2017/train2017
@@ -118,7 +118,7 @@ class GaussianJsonCoco():
 
 
 
-    def __get_img_ann__(self, data_type, coco_data_dir, iscopy=False):
+    def __get_img_ann__(self, data_type, coco_data_dir, iscopy=True):
         '''
         call get_coco_annotation function and get related imgs and annotations
         :param data_type: train2017/val2017
@@ -168,7 +168,7 @@ class GaussianJsonCoco():
 
             # copy target image file to outdir
             if iscopy:
-                # print('copying files from source dataset')
+                print('copying files from source dataset')
                 shutil.copyfile(os.path.join(src_dir, file_name), os.path.join(target_dir, file_name))
 
 
@@ -178,7 +178,7 @@ class GaussianJsonCoco():
 if __name__ == "__main__":
 
     coco_data_dir = '/dl/data/coco'
-    out_dir = '/media/pesong/e/dl_gaussian/data/gaussian'
+    out_dir = '/media/pesong/e/dl_gaussian/data/gaussian/mini_coco'
     data_type = 'val2017'
     category_yaml = '../../gaussian_categories_test.yml'
 
