@@ -26,12 +26,12 @@ dataType = 'train'
 #                   'cell phone', 'microwave', 'oven', 'toaster', 'sink', 'refrigerator', 'book', 'clock', 'vase', 'scissors',
 #                    'teddy bear', 'hair drier', 'toothbrush']
 
-target_classes = ['person', 'bicycle', 'car', 'road']
-output_dir = '/home/data_dl/detect-voc/person_car_bicycle'
-dataDir = '/media/pesong/e/dl_gaussian/data/coco/images/{}2017'.format(dataType)
-anno_file = '/media/pesong/e/dl_gaussian/data/coco/annotations/instances_{}2017.json'.format(dataType)
+target_classes = ['person', 'car']
+output_dir = '/media/pesong/e/dl_gaussian/data/backbone_seg_ssd/cityscapes_ssd_seg'
+dataDir = '/media/pesong/e/dl_gaussian/data/gaussian/cityscapes/images/{}2017'.format(dataType)
+anno_file = '/media/pesong/e/dl_gaussian/data/gaussian/cityscapes/annotations/instances_{}2017.json'.format(dataType)
 type = 'instance'            # annotation file for object instance/keypoint
-total_num = 50000
+# total_num = 50000
 
 
 def instance2xml_base(anno):
@@ -43,7 +43,6 @@ def instance2xml_base(anno):
             E.database('MS COCO 2017'),
             E.annotation('MS COCO 2017'),
             E.image('Flickr'),
-            E.url(anno['coco_url'])
         ),
         E.size(
             E.width(anno['width']),
@@ -133,8 +132,8 @@ def parse_instance(content, outdir):
             shutil.copyfile(img_path, target_dir)
             target_images.append(name)
 
-        if len(target_images) > total_num:
-            break
+        # if len(target_images) > total_num:
+        #     break
 
     print(len(target_images))
 

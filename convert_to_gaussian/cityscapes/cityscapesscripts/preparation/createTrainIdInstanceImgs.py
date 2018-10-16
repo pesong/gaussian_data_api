@@ -31,6 +31,7 @@ sys.path.append( os.path.normpath( os.path.join( os.path.dirname( __file__ ) , '
 from csHelpers        import printError
 from json2instanceImg import json2instanceImg
 
+CITYSCAPES_DATASET = '/media/pesong/e/dl_gaussian/data/cityscapes/cityscapes_ori'
 
 # The main method
 def main():
@@ -38,7 +39,8 @@ def main():
     if 'CITYSCAPES_DATASET' in os.environ:
         cityscapesPath = os.environ['CITYSCAPES_DATASET']
     else:
-        cityscapesPath = os.path.join(os.path.dirname(os.path.realpath(__file__)),'..','..')
+        cityscapesPath = CITYSCAPES_DATASET
+        # cityscapesPath = os.path.join(os.path.dirname(os.path.realpath(__file__)),'..','..')
     # how to search for all ground truth
     searchFine   = os.path.join( cityscapesPath , "gtFine"   , "*" , "*" , "*_gt*_polygons.json" )
     searchCoarse = os.path.join( cityscapesPath , "gtCoarse" , "*" , "*" , "*_gt*_polygons.json" )

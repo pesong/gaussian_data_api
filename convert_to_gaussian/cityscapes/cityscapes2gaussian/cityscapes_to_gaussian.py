@@ -223,7 +223,7 @@ class GSJsonFromCityscapes():
 
 
 if __name__ == '__main__':
-    data_dir = '/media/pesong/e/dl_gaussian/data/cityscapes/cityscapes_mini'
+    data_dir = '/media/pesong/e/dl_gaussian/data/cityscapes/cityscapes_ori'
     # out_dir = '/media/pesong/e/dl_gaussian/data/cityscapes/4detectron/annotations'
 
     out_dir = '../../test_cs'

@@ -23,6 +23,9 @@
 from __future__ import print_function
 import os, glob, sys
 
+CITYSCAPES_DATASET = '/media/pesong/e/dl_gaussian/data/cityscapes/cityscapes_ori'
+dst_path = "/media/pesong/e/dl_gaussian/data/backbone_seg_ssd/cityscapes_ssd_seg/Segmentations"
+
 # cityscapes imports
 sys.path.append( os.path.normpath( os.path.join( os.path.dirname( __file__ ) , '..' , 'helpers' ) ) )
 from csHelpers     import printError
@@ -34,7 +37,8 @@ def main():
     if 'CITYSCAPES_DATASET' in os.environ:
         cityscapesPath = os.environ['CITYSCAPES_DATASET']
     else:
-        cityscapesPath = os.path.join(os.path.dirname(os.path.realpath(__file__)),'..','..')
+        cityscapesPath = CITYSCAPES_DATASET
+        # cityscapesPath = os.path.join(os.path.dirname(os.path.realpath(__file__)),'..','..')
     # how to search for all ground truth
     searchFine   = os.path.join( cityscapesPath , "gtFine"   , "*" , "*" , "*_gt*_polygons.json" )
     searchCoarse = os.path.join( cityscapesPath , "gtCoarse" , "*" , "*" , "*_gt*_polygons.json" )
@@ -61,8 +65,11 @@ def main():
     print("Progress: {:>3} %".format( progress * 100 / len(files) ), end=' ')
     for f in files:
         # create the output filename
-        dst = f.replace( "_polygons.json" , "_labelTrainIds.png" )
+        dst = f.replace( "_gtFine_polygons.json" , "_leftImg8bit.png" )
 
+
+        # file_name = f.split('/')[-1].replace( "_gtFine_polygons.json" , "_leftImg8bit.png" )
+        # dst = os.path.join(dst_path, file_name)
         # do the conversion
         try:
             json2labelImg( f , dst , "trainIds" )
