@@ -1,0 +1,8 @@
+*.pyc
+*.txt
+*~
+.idea/
+data/
+*devkit*
+*!
+__pycache__
