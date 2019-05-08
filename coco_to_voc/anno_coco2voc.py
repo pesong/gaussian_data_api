@@ -13,7 +13,7 @@ from PIL import Image
 
 ### define variables
 
-dataType = 'train'
+dataType = 'val'
 
 # list of target object to convert
 # target_classes = ['person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus', 'train', 'truck', 'boat', 'traffic light',

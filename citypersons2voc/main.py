@@ -22,7 +22,7 @@ lbl_map = {
     0: 'ignore',  # 'ignore', #set to None to remove this class
     1: 'person',
     2: 'rider',  # 'rider',
-    3: 'ignore',  # 'sit',
+    3: 'person',  # 'sit',
     4: 'ignore',  # 'other',
     5: 'ignore'  # 'group'
 }  # ignore,ped,rider,sit,other,group
@@ -44,7 +44,7 @@ vf = voc_ops.voc_formatter(cityperson_image_root_dir,
                            width_range=[10, np.inf],
                            vis_range=[0.5, np.inf],
                            enable_train_filter=True,
-                           enable_val_filter=False,
+                           enable_val_filter=True,
                            handle_ignore=True,
                            copy_imgs=False,
                            dir_exist_handling='PROCED')

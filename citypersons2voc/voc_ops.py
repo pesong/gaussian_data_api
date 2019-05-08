@@ -9,40 +9,40 @@ import pprint
 
 header_tmpl = \
     '''
-    <annotation>
-        <folder>VOC2007</folder>
-        <filename>{}</filename>
-        <source>
-            <database>My Database</database>
-            <annotation>CityPersons</annotation>
-            <image>flickr</image>
-            <flickrid>NULL</flickrid>
-        </source>
-        <owner>
-            <flickrid>NULL</flickrid>
-            <name>facevise</name>
-        </owner>
-        <size>
-            <width>{}</width>
-            <height>{}</height>
-            <depth>3</depth>
-        </size>
-        <segmented>0</segmented>
+<annotation>
+    <folder>VOC2007</folder>
+    <filename>{}</filename>
+    <source>
+        <database>My Database</database>
+        <annotation>CityPersons</annotation>
+        <image>flickr</image>
+        <flickrid>NULL</flickrid>
+    </source>
+    <owner>
+        <flickrid>NULL</flickrid>
+        <name>facevise</name>
+    </owner>
+    <size>
+        <width>{}</width>
+        <height>{}</height>
+        <depth>3</depth>
+    </size>
+    <segmented>0</segmented>
     '''  # .format(img_name_with_ext, img_w, img_h)
 object_tmpl = \
     '''
-        <object>
-            <name>{}</name>
-            <pose>Unspecified</pose>
-            <truncated>0</truncated>
-            <difficult>0</difficult>
-            <bndbox>
-                <xmin>{:.3f}</xmin>
-                <ymin>{:.3f}</ymin>
-                <xmax>{:.3f}</xmax>
-                <ymax>{:.3f}</ymax>
-            </bndbox>
-        </object>
+    <object>
+        <name>{}</name>
+        <pose>Unspecified</pose>
+        <truncated>0</truncated>
+        <difficult>0</difficult>
+        <bndbox>
+            <xmin>{}</xmin>
+            <ymin>{}</ymin>
+            <xmax>{}</xmax>
+            <ymax>{}</ymax>
+        </bndbox>
+    </object>
     '''  # .format(lbl, x1, y1, x2, y2)
 tail = '</annotation>'
 
@@ -58,9 +58,9 @@ class voc_formatter():
                  width_range=None,  # e.g.: similar to the `height_range`
                  vis_range=None,
                  enable_train_filter=True,
-                 enable_val_filter=False,  # False to disable all the filtering action in val set
+                 enable_val_filter=True,  # False to disable all the filtering action in val set
                  copy_imgs=True,  # True to copy all the images,
-                 handle_ignore=False,  # if Ture, label name 'ignore' will no be seen as a gt box when filtering
+                 handle_ignore=True,  # if Ture, label name 'ignore' will no be seen as a gt box when filtering
                  dir_exist_handling='PROCED'
                  # ABORT: abort the program
                  # PROCED: rm existing file
@@ -137,6 +137,7 @@ class voc_formatter():
         # others
         self.drop_cls_id = [k for k, v in self.lbl_map.items() if v is None]
         self.ign_cls_id = [k for k, v in self.lbl_map.items() if v == 'ignore']
+        print()
 
     def __write_readme(self, done_str):
         readme_file = self.des_dir / 'README'
@@ -252,7 +253,11 @@ class voc_formatter():
         content = header_tmpl.format(img_name, w, h)
         for bb in bbs:
             [lbl, x1, y1, x2, y2] = bb
-            content += object_tmpl.format(self.lbl_map[lbl], x1, y1, x2, y2)
+            if(x1 < 0): x1 = 0
+            if(y1 < 0): y1 = 0
+            if(x2 > 2048): x2 = 2048
+            if(y2 > 1024): y1 = 1024
+            content += object_tmpl.format(self.lbl_map[lbl], int(x1), int(y1), int(x2), int(y2))
         content += tail
         xml_name = img_name.split('.')[0] + '.xml'
         xml_file = self.anno_dir / xml_name
@@ -307,8 +312,10 @@ class voc_formatter():
                 vec = vec[keep_inds, :]
 
             total_gt_num += vec.shape[0]
-            if self.handle_ignore:
-                vec = np.vstack((vec,ign_vec))
+
+            # if self.handle_ignore:
+            #     vec = np.vstack((vec,ign_vec))
+            
             # format bbs: 10-d to 5-d
             bbs = vec[:, [0, 1, 2, 3, 4]]
 
